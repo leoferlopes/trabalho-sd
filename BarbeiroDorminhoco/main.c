@@ -1,12 +1,3 @@
-/*
- * Copyright (c) 2004-2006 The Trustees of Indiana University and Indiana
- *                         University Research and Technology
- *                         Corporation.  All rights reserved.
- * Copyright (c) 2006      Cisco Systems, Inc.  All rights reserved.
- *
- * Simple ring test program in C.
- */
-
 #include <stdio.h>
 #include "mpi.h"
 
@@ -89,9 +80,29 @@ void cliente() {
 
 }
 
+//---------- Mensagens exibidas durante a execução do programa ----------
+
+void cortando_cabelo() { 
+  // ou seja o barbeiro está ocupado
+  printf("O Barbeiro esta cortando o cabelo de alguem!\n");
+}
+
+void cliente_chegou() {
+  printf("Cliente chegou para cortar cabelo!\n");
+}
+
+void atendendo_cliente() {
+  printf("Cliente esta tendo o cabelo cortado!\n");
+}
+
+void cliente_desiste() {
+  printf("Cliente desistiu! (O salao estah muito cheio!)\n");
+}
+
+//---------- Função principal --------------------------
 int main(int argc, char *argv[]) {
 
-    /* Start up MPI */
+    /* Inicia o MPI */
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
