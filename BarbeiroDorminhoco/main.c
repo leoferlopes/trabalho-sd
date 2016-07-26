@@ -25,12 +25,18 @@ int tagResposta = TAG_RESPOSTA;
 int tagPedido = TAG_PEDIDO;
 int idCoordenador = ID_COORDENADOR;
 int idBarbeiro = ID_BARBEIRO;
+int cadeiras = CADEIRAS;
 
 int rank, size;
 
 void coordenador() {
     int processo;
     int barbeiroLivre = TRUE;
+    int* cadeirasOcupadas = malloc(cadeiras * sizeof(int));
+    int qtdCadeirasOcupadas = 0;
+    int proxCliente = -1;
+    int proxCadeiraVazia = 0;
+
     while (1) {
         MPI_Recv(&processo, 1, MPI_INT, MPI_ANY_SOURCE, tagPedido, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         
@@ -41,9 +47,19 @@ void coordenador() {
         }
         
         // Testa se tem espaço na fila
-        if (0) {
-            // Enfilera o pedido do processo
-            // ou já manda para o barbeiro se o barbeiro estiver livre
+        if (qtdCadeirasOcupadas < cadeiras) {
+            if (barbeiroLivre){
+                MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD) //Repassa o pedido ao barbeiro se este estiver livre
+            } else {
+                cadeirasOcupadas[proxCadeiraVazia] = processo;
+                qtdCadeirasOcupadas++; //Ocupa uma cadeira
+                if (qtdCadeirasOcupadas == 1){ //Se este processo for o único na fila, definir cliente atual como próximo
+                    proxCliente = proxCadeiraVazia;
+                }
+                if (++proxCadeiraVazia == cadeiras){ //Fazer o loop no contador se der "overflow"
+                    proxCadeiraVazia = 0;
+                }
+            }
         } else {
             int message = FALSE;
             MPI_Send(&message, 1, MPI_INT, processo, tagResposta, MPI_COMM_WORLD);
