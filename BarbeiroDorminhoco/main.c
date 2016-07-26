@@ -1,10 +1,11 @@
 /*
- * Copyright (c) 2004-2006 The Trustees of Indiana University and Indiana
- *                         University Research and Technology
- *                         Corporation.  All rights reserved.
- * Copyright (c) 2006      Cisco Systems, Inc.  All rights reserved.
- *
- * Simple ring test program in C.
+ * Problema do Barbeiro Dorminhoco
+ * 
+ * Universidade Federal Fluminense
+ * Departamento de Ciência da Computação
+ * Sistemas Distribuídos - 2016.1
+ * 
+ * Alunos: Bernardo Lopes, Leonardo Lopes e Romulo Martins
  */
 
 #include <stdio.h>
@@ -27,18 +28,24 @@ int idCoordenador = ID_COORDENADOR;
 int idBarbeiro = ID_BARBEIRO;
 int cadeiras = CADEIRAS;
 
+int barbeiroLivre = FALSE;
+
 //Variáveis relaciondas às cadeiras da barbearia
 int* cadeirasOcupadas = malloc(cadeiras * sizeof(int)); //O array em si
 int qtdCadeirasOcupadas = 0; //Contador de cadeiras ocupadas
 int proxCliente = -1; //Posição do próximo cliente no array
 int proxCadeiraVazia = 0; //Próxima cadeira vazia no array
 
-int barbeiroLivre = TRUE;
 int rank, size;
 
 void coordenador() {
     int processo;
 
+    int* cadeirasOcupadas = malloc(cadeiras * sizeof (int));
+    int qtdCadeirasOcupadas = 0;
+    int proxCliente = -1;
+    int proxCadeiraVazia = 0;
+   
     while (1) {
         MPI_Recv(&processo, 1, MPI_INT, MPI_ANY_SOURCE, tagPedido, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
@@ -50,15 +57,15 @@ void coordenador() {
 
         // Testa se tem espaço na fila
         if (qtdCadeirasOcupadas < cadeiras) {
-            if (barbeiroLivre){
+            if (barbeiroLivre) {
                 mandaOrdemParaOBarbeiro();
             } else {
                 cadeirasOcupadas[proxCadeiraVazia] = processo;
                 qtdCadeirasOcupadas++; //Ocupa uma cadeira
-                if (qtdCadeirasOcupadas == 1){ //Se este processo for o único na fila, definir cliente atual como próximo
+                if (qtdCadeirasOcupadas == 1) { //Se este processo for o único na fila, definir cliente atual como próximo
                     proxCliente = proxCadeiraVazia;
                 }
-                if (++proxCadeiraVazia == cadeiras){ //Fazer o loop no contador se der "overflow"
+                if (++proxCadeiraVazia == cadeiras) { //Fazer o loop no contador se der "overflow"
                     proxCadeiraVazia = 0;
                 }
             }
@@ -81,12 +88,39 @@ void mandaOrdemParaOBarbeiro() {
     }
 }
 
-void barbeiro() {
+void cortarCabelo(int processo) {
+    //TODO: cortar cabelo
+}
 
+void barbeiro() {
+    while (1) {
+        // avisa o coordenador que está livre
+        MPI_Send(&rank, 1, MPI_INT, idCoordenador, tagPedido, MPI_COMM_WORLD);
+
+        // recebe ordem de serviço
+        int processo;
+        MPI_Recv(&processo, 1, MPI_INT, MPI_ANY_SOURCE, tagPedido, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+        // corta o cabelo do cliente
+        cortarCabelo(processo);
+
+        // envia um ok para o cliente
+        int message = TRUE;
+        MPI_Send(&message, 1, MPI_INT, processo, tagResposta, MPI_COMM_WORLD);
+    }
 }
 
 void cliente() {
+    MPI_Send(&rank, 1, MPI_INT, idCoordenador, tagPedido, MPI_COMM_WORLD);
 
+    int resposta;
+    MPI_Recv(&resposta, 1, MPI_INT, MPI_ANY_SOURCE, tagResposta, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+    if (resposta) {
+        //TODO: corte de cabelo finalizado
+    } else {
+        //TODO: não existem cadeiras, ir embora
+    }
 }
 
 int main(int argc, char *argv[]) {
