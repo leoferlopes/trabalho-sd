@@ -27,11 +27,11 @@ int idCoordenador = ID_COORDENADOR;
 int idBarbeiro = ID_BARBEIRO;
 int cadeiras = CADEIRAS;
 
+int barbeiroLivre = TRUE;
 int rank, size;
 
 void coordenador() {
     int processo;
-    int barbeiroLivre = TRUE;
     int* cadeirasOcupadas = malloc(cadeiras * sizeof(int));
     int qtdCadeirasOcupadas = 0;
     int proxCliente = -1;
@@ -39,17 +39,17 @@ void coordenador() {
 
     while (1) {
         MPI_Recv(&processo, 1, MPI_INT, MPI_ANY_SOURCE, tagPedido, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        
+
         // testa se a mensagem é do barbeiro
-        if(processo == idBarbeiro){
-            // barbeiro avisa que está livre
-            // manda uma ordem de serviço para ele
+        if (processo == idBarbeiro) {
+            barbeiroLivre = TRUE;
+            mandaOrdemParaOBarbeiro();
         }
-        
+
         // Testa se tem espaço na fila
         if (qtdCadeirasOcupadas < cadeiras) {
             if (barbeiroLivre){
-                MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD) //Repassa o pedido ao barbeiro se este estiver livre
+                mandaOrdemParaOBarbeiro();
             } else {
                 cadeirasOcupadas[proxCadeiraVazia] = processo;
                 qtdCadeirasOcupadas++; //Ocupa uma cadeira
@@ -64,6 +64,14 @@ void coordenador() {
             int message = FALSE;
             MPI_Send(&message, 1, MPI_INT, processo, tagResposta, MPI_COMM_WORLD);
         }
+    }
+}
+
+void mandaOrdemParaOBarbeiro() {
+    if (barbeiroLivre /* && fila não está vazia */) {
+        int processo = 2; /* pega o primeiro elemento da fila */
+        MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
+        barbeiroLivre = FALSE;
     }
 }
 
