@@ -38,6 +38,18 @@ int proxCadeiraVazia = 0; //Próxima cadeira vazia no array
 
 int rank, size;
 
+void mandaOrdemParaOBarbeiro() {
+    if (barbeiroLivre && qtdCadeirasOcupadas > 0) {
+        int processo = cadeirasOcupadas[proxCliente]; /* pega o primeiro elemento da fila */
+        if (++proxCliente == cadeiras){ //Fazer o loop no contador se der "overflow"
+            proxCliente == 0;
+        }
+        MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
+        qtdCadeirasOcupadas--;
+        barbeiroLivre = FALSE;
+    }
+}
+
 void coordenador() {
     int processo;
 
@@ -73,18 +85,6 @@ void coordenador() {
             int message = FALSE;
             MPI_Send(&message, 1, MPI_INT, processo, tagResposta, MPI_COMM_WORLD);
         }
-    }
-}
-
-void mandaOrdemParaOBarbeiro() {
-    if (barbeiroLivre && qtdCadeirasOcupadas > 0) {
-        int processo = cadeirasOcupadas[proxCliente]; /* pega o primeiro elemento da fila */
-        if (++proxCliente == cadeiras){ //Fazer o loop no contador se der "overflow"
-            proxCliente == 0;
-        }
-        MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
-        qtdCadeirasOcupadas--;
-        barbeiroLivre = FALSE;
     }
 }
 
@@ -132,10 +132,10 @@ int main(int argc, char *argv[]) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     switch (rank) {
-        case idCoordenador:
+        case 0:
             coordenador();
             break;
-        case idBarbeiro:
+        case 1:
             barbeiro();
             break;
         default:
