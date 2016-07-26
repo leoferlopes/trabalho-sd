@@ -27,15 +27,17 @@ int idCoordenador = ID_COORDENADOR;
 int idBarbeiro = ID_BARBEIRO;
 int cadeiras = CADEIRAS;
 
+//Variáveis relaciondas às cadeiras da barbearia
+int* cadeirasOcupadas = malloc(cadeiras * sizeof(int)); //O array em si
+int qtdCadeirasOcupadas = 0; //Contador de cadeiras ocupadas
+int proxCliente = -1; //Posição do próximo cliente no array
+int proxCadeiraVazia = 0; //Próxima cadeira vazia no array
+
 int barbeiroLivre = TRUE;
 int rank, size;
 
 void coordenador() {
     int processo;
-    int* cadeirasOcupadas = malloc(cadeiras * sizeof(int));
-    int qtdCadeirasOcupadas = 0;
-    int proxCliente = -1;
-    int proxCadeiraVazia = 0;
 
     while (1) {
         MPI_Recv(&processo, 1, MPI_INT, MPI_ANY_SOURCE, tagPedido, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -68,9 +70,13 @@ void coordenador() {
 }
 
 void mandaOrdemParaOBarbeiro() {
-    if (barbeiroLivre /* && fila não está vazia */) {
-        int processo = 2; /* pega o primeiro elemento da fila */
+    if (barbeiroLivre && qtdCadeirasOcupadas > 0) {
+        int processo = cadeirasOcupadas[proxCliente]; /* pega o primeiro elemento da fila */
+        if (++proxCliente == cadeiras){ //Fazer o loop no contador se der "overflow"
+            proxCliente == 0;
+        }
         MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
+        qtdCadeirasOcupadas--;
         barbeiroLivre = FALSE;
     }
 }
