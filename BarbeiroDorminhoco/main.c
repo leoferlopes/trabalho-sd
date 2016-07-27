@@ -39,6 +39,29 @@ int proxCadeiraVazia = 0; //Próxima cadeira vazia no array
 
 int rank, size;
 
+//---------- Mensagens exibidas durante a execução do programa ----------
+
+void cortando_cabelo() { 
+  // ou seja o barbeiro está ocupado
+  printf("O Barbeiro esta cortando o cabelo de alguem!\n");
+}
+
+void cabelo_cortado(int processo) {
+    printf("Cabelo do cliente %d cortado e um cliente satisfeito!\n", processo);
+}
+
+void cliente_chegou(int processo) {
+  printf("Cliente %d chegou para cortar cabelo!\n", processo);
+}
+
+void atendendo_cliente(int processo) {
+  printf("Cliente %d esta tendo o cabelo cortado!\n", processo);
+}
+
+void cliente_desiste(int processo) {
+  printf("Cliente %d desistiu! (O salao estah muito cheio!)\n", processo);
+}
+
 void mandaOrdemParaOBarbeiro() {
     if (barbeiroLivre && qtdCadeirasOcupadas > 0) {
         int processo = cadeirasOcupadas[proxCliente]; /* pega o primeiro elemento da fila */
@@ -119,30 +142,12 @@ void cliente() {
     MPI_Recv(&resposta, 1, MPI_INT, MPI_ANY_SOURCE, tagResposta, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     if (resposta) {
-        //TODO: corte de cabelo finalizado
+        cabelo_cortado(rank);
     } else {
-        //TODO: não existem cadeiras, ir embora
+        cliente_desiste(rank);
     }
 }
 
-//---------- Mensagens exibidas durante a execução do programa ----------
-
-void cortando_cabelo() { 
-  // ou seja o barbeiro está ocupado
-  printf("O Barbeiro esta cortando o cabelo de alguem!\n");
-}
-
-void cliente_chegou() {
-  printf("Cliente chegou para cortar cabelo!\n");
-}
-
-void atendendo_cliente() {
-  printf("Cliente esta tendo o cabelo cortado!\n");
-}
-
-void cliente_desiste() {
-  printf("Cliente desistiu! (O salao estah muito cheio!)\n");
-}
 
 //---------- Função principal --------------------------
 int main(int argc, char *argv[]) {
