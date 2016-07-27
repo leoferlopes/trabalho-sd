@@ -48,7 +48,7 @@ void cortando_cabelo() {
 }
 
 void cabelo_cortado(int processo) {
-    printf("BARBEIRO: Cabelo do cliente %d cortado, só falta pagar!\n", processo);
+    printf("BARBEIRO: Cabelo do cliente %d cortado!\n", processo);
 }
 
 void cliente_chegou(int processo) {
@@ -67,9 +67,9 @@ void atendendo_cliente(int processo) {
   printf("BARBEIRO: Cliente %d esta tendo o cabelo cortado!\n", processo);
 }
 
-void cliente_satisfeito(int processo){
-    printf("CLIENTE: Cliente %d pagou R$ %d,00 e foi embora satisfeito!\n", processo, rand()%100 + 1);
-}
+// void cliente_satisfeito(int processo){
+//     printf("CLIENTE: Cliente %d pagou R$ %d,00 e foi embora satisfeito!\n", processo, rand()%100 + 1);
+// }
 
 void cliente_desiste(int processo) {
   printf("CLIENTE: Cliente %d desistiu! (O salao estah muito cheio!)\n", processo);
@@ -151,9 +151,7 @@ void cliente() {
     int resposta;
     MPI_Recv(&resposta, 1, MPI_INT, MPI_ANY_SOURCE, tagResposta, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-    if (resposta) {
-        cliente_satisfeito(rank);
-    } else {
+    if (!resposta) {
         cliente_desiste(rank);
     }
 }
