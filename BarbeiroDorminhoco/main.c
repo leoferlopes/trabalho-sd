@@ -9,6 +9,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "mpi.h"
 
 #define ID_COORDENADOR 0;
@@ -31,7 +32,7 @@ int cadeiras = CADEIRAS;
 int barbeiroLivre = FALSE;
 
 //Variáveis relaciondas às cadeiras da barbearia
-int* cadeirasOcupadas = malloc(cadeiras * sizeof(int)); //O array em si
+int* cadeirasOcupadas;
 int qtdCadeirasOcupadas = 0; //Contador de cadeiras ocupadas
 int proxCliente = -1; //Posição do próximo cliente no array
 int proxCadeiraVazia = 0; //Próxima cadeira vazia no array
@@ -53,7 +54,7 @@ void mandaOrdemParaOBarbeiro() {
 void coordenador() {
     int processo;
 
-    int* cadeirasOcupadas = malloc(cadeiras * sizeof (int));
+    cadeirasOcupadas = (int*) malloc(cadeiras * sizeof (int));
     int qtdCadeirasOcupadas = 0;
     int proxCliente = -1;
     int proxCadeiraVazia = 0;
@@ -86,6 +87,7 @@ void coordenador() {
             MPI_Send(&message, 1, MPI_INT, processo, tagResposta, MPI_COMM_WORLD);
         }
     }
+    free(cadeirasOcupadas);
 }
 
 void cortarCabelo(int processo) {
