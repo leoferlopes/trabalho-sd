@@ -93,17 +93,16 @@ void coordenador() {
 
         // Testa se tem espaço na fila
         if (qtdCadeirasOcupadas < cadeiras) {
+            cadeirasOcupadas[proxCadeiraVazia] = processo;
+            qtdCadeirasOcupadas++; //Ocupa uma cadeira
+            if (qtdCadeirasOcupadas == 1) { //Se este processo for o único na fila, definir cliente atual como próximo
+                proxCliente = proxCadeiraVazia;
+            }
+            if (++proxCadeiraVazia == cadeiras) { //Fazer o loop no contador se der "overflow"
+                proxCadeiraVazia = 0;
+            }
             if (barbeiroLivre) {
                 mandaOrdemParaOBarbeiro();
-            } else {
-                cadeirasOcupadas[proxCadeiraVazia] = processo;
-                qtdCadeirasOcupadas++; //Ocupa uma cadeira
-                if (qtdCadeirasOcupadas == 1) { //Se este processo for o único na fila, definir cliente atual como próximo
-                    proxCliente = proxCadeiraVazia;
-                }
-                if (++proxCadeiraVazia == cadeiras) { //Fazer o loop no contador se der "overflow"
-                    proxCadeiraVazia = 0;
-                }
             }
         } else {
             int message = FALSE;
