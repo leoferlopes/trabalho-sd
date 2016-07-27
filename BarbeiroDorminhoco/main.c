@@ -47,19 +47,31 @@ void cortando_cabelo() {
 }
 
 void cabelo_cortado(int processo) {
-    printf("Cabelo do cliente %d cortado e um cliente satisfeito!\n", processo);
+    printf("BARBEIRO: Cabelo do cliente %d cortado, só falta pagar!\n", processo);
 }
 
 void cliente_chegou(int processo) {
   printf("Cliente %d chegou para cortar cabelo!\n", processo);
 }
 
+void cliente_sentou(int processo, int cadeira) {
+    printf("COORD: Cliente %d se sentou na cadeira %d e pegou uma Caras de %d enquanto espera.\n", processo, cadeira, rand()%40 + 1970);
+}
+
+void cliente_proximo(int processo) {
+    printf("COORD: Cliente %d chamado para sentar na cadeira do barbeiro.\n", processo);
+}
+
 void atendendo_cliente(int processo) {
-  printf("Cliente %d esta tendo o cabelo cortado!\n", processo);
+  printf("BARBEIRO: Cliente %d esta tendo o cabelo cortado!\n", processo);
+}
+
+void cliente_satisfeito(int processo){
+    printf("CLIENTE: Cliente %d pagou R$ %d,00 e foi embora satisfeito!\n", processo, rand()%100 + 1);
 }
 
 void cliente_desiste(int processo) {
-  printf("Cliente %d desistiu! (O salao estah muito cheio!)\n", processo);
+  printf("CLIENTE: Cliente %d desistiu! (O salao estah muito cheio!)\n", processo);
 }
 
 void mandaOrdemParaOBarbeiro() {
@@ -68,6 +80,7 @@ void mandaOrdemParaOBarbeiro() {
         if (++proxCliente == cadeiras){ //Fazer o loop no contador se der "overflow"
             proxCliente = 0;
         }
+        cliente_proximo(processo);
         MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
         qtdCadeirasOcupadas--;
         barbeiroLivre = FALSE;
@@ -89,6 +102,7 @@ void coordenador() {
         } else if (qtdCadeirasOcupadas < cadeiras) { // Testa se tem espaço na fila
             cadeirasOcupadas[proxCadeiraVazia] = processo;
             qtdCadeirasOcupadas++; //Ocupa uma cadeira
+            cliente_sentou(processo, proxCadeiraVazia + 1);
             if (qtdCadeirasOcupadas == 1) { //Se este processo for o único na fila, definir cliente atual como próximo
                 proxCliente = proxCadeiraVazia;
             }
@@ -107,7 +121,9 @@ void coordenador() {
 }
 
 void cortarCabelo(int processo) {
-    //TODO: cortar cabelo
+    atendendo_cliente(processo);
+    //la la ri la la la
+    cabelo_cortado(processo);
 }
 
 void barbeiro() {
@@ -134,7 +150,7 @@ void cliente() {
     MPI_Recv(&resposta, 1, MPI_INT, MPI_ANY_SOURCE, tagResposta, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
     if (resposta) {
-        cabelo_cortado(rank);
+        cliente_satisfeito(rank);
     } else {
         cliente_desiste(rank);
     }
