@@ -10,12 +10,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "mpi.h"
 
 #define ID_COORDENADOR 0;
 #define ID_BARBEIRO 1;
 
-#define CADEIRAS 6;
+#define CADEIRAS 10;
 
 #define TAG_RESPOSTA 200;
 #define TAG_PEDIDO 201;
@@ -58,9 +59,9 @@ void cliente_sentou(int processo, int cadeira) {
     printf("COORD: Cliente %d se sentou na cadeira %d e pegou uma Caras de %d enquanto espera.\n", processo, cadeira, rand()%40 + 1970);
 }
 
-void cliente_proximo(int processo) {
-    printf("COORD: Cliente %d chamado para sentar na cadeira do barbeiro.\n", processo);
-}
+// void cliente_proximo(int processo) {
+//     printf("COORD: Cliente %d chamado para sentar na cadeira do barbeiro.\n", processo);
+// }
 
 void atendendo_cliente(int processo) {
   printf("BARBEIRO: Cliente %d esta tendo o cabelo cortado!\n", processo);
@@ -80,9 +81,10 @@ void mandaOrdemParaOBarbeiro() {
         if (++proxCliente == cadeiras){ //Fazer o loop no contador se der "overflow"
             proxCliente = 0;
         }
-        cliente_proximo(processo);
-        MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
+        // cliente_proximo(processo);
         qtdCadeirasOcupadas--;
+        // printf("DEBUG: Próximo cliente está na cadeira: %d\nDEBUG: %d cadeiras ocupadas\n", proxCliente, qtdCadeirasOcupadas);
+        MPI_Send(&processo, 1, MPI_INT, idBarbeiro, tagPedido, MPI_COMM_WORLD);
         barbeiroLivre = FALSE;
     }
 }
@@ -106,12 +108,11 @@ void coordenador() {
             if (qtdCadeirasOcupadas == 1) { //Se este processo for o único na fila, definir cliente atual como próximo
                 proxCliente = proxCadeiraVazia;
             }
+            // printf("DEBUG: Próximo cliente está na cadeira: %d\nDEBUG: %d cadeiras ocupadas\n", proxCliente, qtdCadeirasOcupadas);
             if (++proxCadeiraVazia == cadeiras) { //Fazer o loop no contador se der "overflow"
                 proxCadeiraVazia = 0;
             }
-            if (barbeiroLivre) {
-                mandaOrdemParaOBarbeiro();
-            }
+            mandaOrdemParaOBarbeiro();
         } else {
             int message = FALSE;
             MPI_Send(&message, 1, MPI_INT, processo, tagResposta, MPI_COMM_WORLD);
@@ -144,6 +145,7 @@ void barbeiro() {
 }
 
 void cliente() {
+    usleep(500000);
     MPI_Send(&rank, 1, MPI_INT, idCoordenador, tagPedido, MPI_COMM_WORLD);
 
     int resposta;
